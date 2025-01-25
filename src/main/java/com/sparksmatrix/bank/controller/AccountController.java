@@ -20,4 +20,10 @@ public class AccountController {
         var response = accountService.createAccount(accountCreateDto);
         return ResponseEntity.status(response.getCode()).body(response);
     }
+
+    @GetMapping("/balance/{accountNumber}")
+    public ResponseEntity getAccountBalance(@PathVariable String accountNumber) {
+        var response = accountService.getAccountBalance(accountNumber);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
 }

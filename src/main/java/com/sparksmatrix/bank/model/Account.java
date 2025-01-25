@@ -1,15 +1,15 @@
 package com.sparksmatrix.bank.model;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Entity
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "accounts")
 public class Account extends AuditModel {
 
