@@ -37,12 +37,6 @@ public class AccountServiceImpl implements  AccountService {
                 .build();
 
         var savedAccount = accountRepository.save(account);
-        if (ObjectUtils.isEmpty(savedAccount)) {
-            return ResponseWrapper.builder()
-                    .code(HttpStatus.BAD_REQUEST.value())
-                    .message("Error occurred creating account. Kindly try again")
-                    .build();
-        }
 
         return ResponseWrapper.builder()
                 .code(HttpStatus.CREATED.value())
@@ -52,19 +46,17 @@ public class AccountServiceImpl implements  AccountService {
 
     @Override
     public ResponseWrapper getAccountBalance(String accountNumber) {
-        Optional<Account> optionalAccount = accountRepository
-                .findByAccountNumber(accountNumber);
-        if(optionalAccount.isEmpty()) {
+        Optional<BigDecimal> optionalBalance = accountRepository.getAccountBalance(accountNumber);
+        if(optionalBalance.isEmpty()) {
             return ResponseWrapper.builder()
                     .code(HttpStatus.NOT_FOUND.value())
                     .message("Account not found")
                     .build();
         }
 
-        Account account = optionalAccount.get();
         AccountBalanceResponseDto accountBalanceResponseDto = AccountBalanceResponseDto
                 .builder()
-                .balance(account.getBalance())
+                .balance(optionalBalance.get())
                 .build();
 
         return ResponseWrapper.builder()
