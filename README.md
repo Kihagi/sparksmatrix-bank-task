@@ -47,7 +47,7 @@ This is a simple micro web service that simulates a "Bank Account" using Spring 
     "name": "John Doe",
     "accountNumber": "00045678912",
     "balance": 0
-   }
+    }
   }
   ```
   
