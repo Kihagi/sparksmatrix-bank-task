@@ -25,13 +25,43 @@ This is a simple micro web service that simulates a "Bank Account" using Spring 
 
 ## API Endpoints
 
+### 1. Create Account
+- **Endpoint**: `POST /api/account`
+- **Description**: Creates a new Account.
+- **Request Body**:
+  ```json
+  {
+  "name": "John Doe",
+  "accountNumber": "00045678912"
+  }
+  ```
+- **Response**:
+   ```json
+  {
+  "code": 201,
+  "message": "Account created successfully",
+  "data": {
+    "createdAt": "2025-01-27T17:43:45.6521029",
+    "updatedAt": "2025-01-27T17:43:45.6521029",
+    "id": 1,
+    "name": "John Doe",
+    "accountNumber": "00045678912",
+    "balance": 0
+   }
+  }
+  ```
+  
 ### 1. Get Balance
-- **Endpoint**: `GET /api/account/balance`
+- **Endpoint**: `GET /api/account/balance/{accountNumber}`
 - **Description**: Returns the current balance of the account.
 - **Response**:
   ```json
   {
-    "balance": 1000.0
+  "code": 200,
+  "message": "Balance fetched successfully",
+  "data": {
+    "balance": 0
+   }
   }
   ```
 ### 2. Deposit Money
@@ -40,14 +70,30 @@ This is a simple micro web service that simulates a "Bank Account" using Spring 
 - **Request Body**:
   ```json
   {
-    "amount": 5000.0
+  "accountNumber": "00045678912",
+  "amount": 15000
   }
   ```
 - **Response**:
    ```json
   {
+  "code": 200,
   "message": "Deposit successful",
-  "newBalance": 6000.0
+  "data": {
+    "createdAt": "2025-01-27T18:01:44.7467041",
+    "updatedAt": "2025-01-27T18:01:44.7467041",
+    "id": 1,
+    "amount": 15000,
+    "type": "DEPOSIT",
+    "account": {
+      "createdAt": "2025-01-27T17:43:45.652103",
+      "updatedAt": "2025-01-27T18:01:44.8099435",
+      "id": 1,
+      "name": "John Doe",
+      "accountNumber": "00045678912",
+      "balance": 15000
+    }
+   }
   }
   ```
 ### 3. Withdraw Money
@@ -56,14 +102,30 @@ This is a simple micro web service that simulates a "Bank Account" using Spring 
 - **Request Body**:
   ```json
   {
-  "amount": 2000.0
+  "accountNumber": "00045678912",
+  "amount": 5000
   }
   ```
 - **Response**:
    ```json
   {
+  "code": 200,
   "message": "Withdrawal successful",
-  "newBalance": 4000.0
+  "data": {
+    "createdAt": "2025-01-27T18:06:16.6498293",
+    "updatedAt": "2025-01-27T18:06:16.6498293",
+    "id": 2,
+    "amount": 5000,
+    "type": "WITHDRAWAL",
+    "account": {
+      "createdAt": "2025-01-27T17:43:45.652103",
+      "updatedAt": "2025-01-27T18:06:16.6663907",
+      "id": 1,
+      "name": "John Doe",
+      "accountNumber": "00045678912",
+      "balance": 10000
+    }
+   }
   }
   ```
 ## Error Handling
@@ -91,8 +153,8 @@ All errors return an appropriate HTTP status code (e.g., `400 Bad Request` or `4
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-username/bank-account-web-service.git
-   cd bank-account-web-service
+   git clone https://github.com/Kihagi/sparksmatrix-bank-task.git
+   cd sparksmatrix-bank-task
    ```
 2. **Build the project**:
 
