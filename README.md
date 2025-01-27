@@ -146,7 +146,7 @@ All errors return an appropriate HTTP status code (e.g., `400 Bad Request` or `4
 
 ### Prerequisites
 
-- Java 11 or higher
+- Java 21 or higher
 - Gradle
 
 ### Steps
