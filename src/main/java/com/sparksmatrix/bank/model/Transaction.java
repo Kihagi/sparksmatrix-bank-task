@@ -2,10 +2,7 @@ package com.sparksmatrix.bank.model;
 
 import com.sparksmatrix.bank.enums.TransactionType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -13,6 +10,8 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 @Table(name = "transactions")
 public class Transaction extends AuditModel {
 

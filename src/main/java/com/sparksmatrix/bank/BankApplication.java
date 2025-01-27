@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 //@SpringBootApplication
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
-@EnableJpaAuditing
+//@EnableJpaAuditing
 public class BankApplication {
 
 	public static void main(String[] args) {

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -44,6 +45,7 @@ public class TransactionServiceImpl implements TransactionService {
     private int dailyMaxWithdrawalFrequency;
 
     @Override
+    @Transactional
     public ResponseWrapper deposit(TransactionRequestDto transactionRequestDto) {
         //check account exists
         Optional<Account> optionalAccount = accountRepository
@@ -62,34 +64,32 @@ public class TransactionServiceImpl implements TransactionService {
 
         //validate deposit frequency
         Account account = optionalAccount.get();
-        long depositsToday = getTodayTransactionCount(account.getId(), TransactionType.DEPOSIT.toString());
+        long depositsToday = transactionRepository.countTransactionForTodayByType(account.getId(), TransactionType.DEPOSIT);
         if(depositsToday >= dailyMaxDepositFrequency) {
             throw new BadRequestException("You have reached the maximum number of transactions for today.");
         }
 
         //validate max daily deposit
-        BigDecimal todayDepositSum = getTodayTransactionSum(account.getId(), TransactionType.DEPOSIT.toString());
+        BigDecimal todayDepositedSum =
+                transactionRepository.sumTransactionForTodayByType(account.getId(), TransactionType.DEPOSIT);
+        BigDecimal totalSumAfterDeposit = todayDepositedSum.add(BigDecimal.valueOf(transactionRequestDto.getAmount()));
         BigDecimal dailyDepositMaxAmountBigDecimal = BigDecimal.valueOf(dailyDepositMaxAmount);
-        if (todayDepositSum.compareTo(dailyDepositMaxAmountBigDecimal) >= 0) {
+        if (totalSumAfterDeposit.compareTo(dailyDepositMaxAmountBigDecimal) >= 0) {
             // Today’s deposit sum is greater than or equal to the max daily deposit amount
             throw new BadRequestException("You have exceeded the maximum daily deposit limit");
         }
 
-        Transaction transaction = Transaction.builder()
-                .account(account)
-                .type(TransactionType.DEPOSIT)
-                .amount(BigDecimal.valueOf(transactionRequestDto.getAmount()))
-                .build();
-
-        Transaction savedTransaction = transactionRepository.save(transaction);
+        Transaction savedTransaction = persistTransactionAndUpdateBalance(account,
+                BigDecimal.valueOf(transactionRequestDto.getAmount()), TransactionType.DEPOSIT);
 
         return ResponseWrapper.builder()
-                .code(HttpStatus.CREATED.value())
+                .code(HttpStatus.OK.value())
                 .message("Deposit successful")
                 .data(savedTransaction).build();
     }
 
     @Override
+    @Transactional
     public ResponseWrapper withdraw(TransactionRequestDto transactionRequestDto) {
         //check account exists
         Optional<Account> optionalAccount = accountRepository
@@ -108,15 +108,16 @@ public class TransactionServiceImpl implements TransactionService {
 
         //validate withdrawal frequency
         Account account = optionalAccount.get();
-        long withdrawalsToday = getTodayTransactionCount(account.getId(), TransactionType.WITHDRAWAL.toString());
+        long withdrawalsToday = transactionRepository.countTransactionForTodayByType(account.getId(), TransactionType.WITHDRAWAL);
         if(withdrawalsToday >= dailyMaxWithdrawalFrequency) {
             throw new BadRequestException("You have reached the maximum number of transactions for today.");
         }
 
         //validate max daily withdrawal
-        BigDecimal todayWithdrawalSum = getTodayTransactionSum(account.getId(), TransactionType.WITHDRAWAL.toString());
+        BigDecimal todayWithdrawnSum = transactionRepository.sumTransactionForTodayByType(account.getId(), TransactionType.WITHDRAWAL);
+        BigDecimal totalWithdrawnPlusAmount = todayWithdrawnSum.add(BigDecimal.valueOf(transactionRequestDto.getAmount()));
         BigDecimal dailyWithdrawalMaxAmountBigDecimal = BigDecimal.valueOf(dailyWithdrawalMaxAmount);
-        if (todayWithdrawalSum.compareTo(dailyWithdrawalMaxAmountBigDecimal) >= 0) {
+        if (totalWithdrawnPlusAmount.compareTo(dailyWithdrawalMaxAmountBigDecimal) >= 0) {
             // Today’s deposit sum is greater than or equal to the max daily deposit amount
             throw new BadRequestException("You have exceeded the maximum daily withdrawal limit");
         }
@@ -127,25 +128,33 @@ public class TransactionServiceImpl implements TransactionService {
             throw new BadRequestException("Insufficient balance.");
         }
 
-        Transaction transaction = Transaction.builder()
-                .account(account)
-                .type(TransactionType.WITHDRAWAL)
-                .amount(BigDecimal.valueOf(transactionRequestDto.getAmount()))
-                .build();
-
-        Transaction savedTransaction = transactionRepository.save(transaction);
+        Transaction savedTransaction = persistTransactionAndUpdateBalance(account,
+                BigDecimal.valueOf(transactionRequestDto.getAmount()), TransactionType.WITHDRAWAL);
 
         return ResponseWrapper.builder()
-                .code(HttpStatus.CREATED.value())
+                .code(HttpStatus.OK.value())
                 .message("Withdrawal successful")
                 .data(savedTransaction).build();
     }
 
-    public long getTodayTransactionCount(Long accountId, String transactionType) {
-        return transactionRepository.countTransactionForTodayByType(accountId, transactionType);
-    }
+    public Transaction persistTransactionAndUpdateBalance(Account account, BigDecimal amount, TransactionType transactionType) {
+        //Persist the new transaction
+        Transaction transaction = Transaction.builder()
+                .account(account)
+                .type(transactionType)
+                .amount(amount)
+                .build();
+        Transaction savedTransaction = transactionRepository.save(transaction);
 
-    public BigDecimal getTodayTransactionSum(Long accountId, String transactionType) {
-        return transactionRepository.sumTransactionForTodayByType(accountId, transactionType);
+        //Update the account balance
+        BigDecimal balance = account.getBalance();
+        balance = switch (transactionType) {
+            case TransactionType.DEPOSIT -> balance.add(amount);
+            case TransactionType.WITHDRAWAL -> balance.subtract(amount);
+        };
+        account.setBalance(balance);
+        accountRepository.save(account);
+
+        return savedTransaction;
     }
 }

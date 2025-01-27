@@ -40,6 +40,7 @@ public class AccountController {
 
     @PostMapping("/withdraw")
     public ResponseEntity withdrawFunds(@Valid @RequestBody TransactionRequestDto transactionRequestDto) {
-
+        var response = transactionService.withdraw(transactionRequestDto);
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 }

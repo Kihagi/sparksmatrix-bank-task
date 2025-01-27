@@ -1,5 +1,6 @@
 package com.sparksmatrix.bank.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -18,6 +19,6 @@ public class TransactionRequestDto {
     private String accountNumber;
 
     @NotNull(message = "Please provide amount")
-    @NotEmpty(message = "Please provide amount")
+    @Min(value = 1, message = "Amount must be greater than 0")
     private int amount;
 }

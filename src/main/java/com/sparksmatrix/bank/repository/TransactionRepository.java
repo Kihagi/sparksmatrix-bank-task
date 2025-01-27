@@ -11,9 +11,9 @@ import java.math.BigDecimal;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    @Query("SELECT COUNT(t) FROM Transaction t WHERE t.account.id = :accountId AND t.type = :transactionType AND DATE(t.createdAt) = CURRENT_DATE")
-    long countTransactionForTodayByType(@Param("accountId") Long accountId, @Param("transactionType") String transactionType);
+    @Query("SELECT COUNT(t) FROM Transaction t WHERE t.account.id = :accountId AND t.type = :transactionType AND CAST(t.createdAt AS DATE) = CURRENT_DATE")
+    int countTransactionForTodayByType(@Param("accountId") Long accountId, @Param("transactionType") TransactionType transactionType);
 
-    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.account.id = :accountId AND t.type = :transactionType AND DATE(t.createdAt) = CURRENT_DATE")
-    BigDecimal sumTransactionForTodayByType(@Param("accountId") Long accountId, @Param("transactionType") String transactionType);
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.account.id = :accountId AND t.type = :transactionType AND CAST(t.createdAt AS DATE) = CURRENT_DATE")
+    BigDecimal sumTransactionForTodayByType(@Param("accountId") Long accountId, @Param("transactionType") TransactionType transactionType);
 }
